@@ -1,86 +1,37 @@
-# from trax import layers as tl
-# from trax.models.transformer import Transformer
-# from trax import optimizers
-# from trax.supervised import training
+from model import DeepilerModel
+from preprocessing import MipsTokenizer, RawCodeTokenizer
 
-from preprocessing import Tokenizer, load_dataset, disass_c_files, preprocess_dataset
+if __name__ == '__main__':
 
-# disass_c_files('data/c_src', 'data/disass_src')
+    # Dataset loading
+    c_path = "./data/c_src"
+    asm_path = "./data/asm_src"
 
+    tokenizer = MipsTokenizer()
+    train_eval_ratio = .9
+    nb_files = 10_000
+    train_dataset = tokenizer.load_dataset(asm_path, c_path, is_train=True, \
+        nb_files=nb_files, train_eval_ratio=train_eval_ratio)
 
-# p = angr.Project('./rd_o', load_options={'auto_load_libs': False})
-# cfg = p.analyses.CFGFast()
-# cfg = p.analyses.CFGEmulated(keep_state=True)
-# print("This is the graph:", cfg.graph.nodes)
+    #  Preprocessing & tokenization 
+    dataset = tokenizer.preprocess_dataset(train_dataset)
+    dataset = tokenizer.tokenize(dataset)
 
-# G = cfg.graph
-# main = p.loader.main_object.get_symbol("main")
-# start_state = p.factory.blank_state(addr=main.rebased_addr)
-# cfg = p.analyses.CFGEmulated(fail_fast=True, starts=[main.rebased_addr], initial_state=start_state)
-# plot_cfg(cfg, "graph", asminst=True, remove_imports=True, remove_path_terminator=True)  
+    batch_size = 32
+    dataset = dataset.shuffle(nb_files).batch(batch_size)
 
+    # Model creation & training
+    model_size = 128
+    model = DeepilerModel(tokenizer, dataset, model_size, asm_path, c_path)
+    epochs = 25
+    model.train(epochs)
 
+    # Model saving to disk
+    model.save('save')
 
-# Dataset building
-train_eval_ratio = 0.7
-nb_samples = 10_000
-train_dataset = load_dataset('data/disass_src_small', 'data/c_src_small', is_train=True, train_eval_ratio=train_eval_ratio)
-test_dataset = load_dataset('data/disass_src_small', 'data/c_src_small', is_train=False, train_eval_ratio=train_eval_ratio)
-# print(next(train_dataset))
+    # Model loading
+    new_model = DeepilerModel(tokenizer, dataset, model_size, asm_path, c_path)
+    new_model.load('save')
 
-# assert len(list(train_dataset)) == int(nb_samples * train_eval_ratio)
-# assert len(list(test_dataset)) == int(nb_samples * (1 - train_eval_ratio))
-# Preprocessing
-train_dataset = preprocess_dataset(train_dataset)
-test_dataset = preprocess_dataset(test_dataset)
-
-# print(next(train_dataset))
-# for line in next(train_dataset)[0].split():
-#     print(line)
-#     print()
-
-tokenizer = Tokenizer(train_dataset)
-# tokenizer.build_vocabulary('data/', 'vocab_file.txt')
-tokenized_dataset = tokenizer.tokenize_dataset('./vocabulary')
-# print(next(tokenized_dataset))
-
-
-
-
-# # Create a Transformer model.
-# # Pre-trained model config in gs://trax-ml/models/translation/ende_wmt32k.gin
-# model = Transformer(
-#     input_vocab_size=33300,
-#     d_model=512, d_ff=2048,
-#     n_heads=8,
-#     n_encoder_layers=6,
-#     n_decoder_layers=6,
-#     max_len=2048,
-#     mode='predict')
-
-# # Training task.
-# train_task = training.TrainTask(
-#     labeled_data=train_batches_stream,
-#     loss_layer=tl.WeightedCategoryCrossEntropy(),
-#     optimizer=optimizers.Adam(0.01),
-#     n_steps_per_checkpoint=500,
-# )
-
-
-# # Tokenize a sentence.
-# sentence = 'It is nice to learn new things today!'
-# tokenized = list(trax.data.tokenize(iter([sentence]),  # Operates on streams.
-#                                     vocab_dir='gs://trax-ml/vocabs/',
-#                                     vocab_file='ende_32k.subword'))[0]
-
-# # Decode from the Transformer.
-# tokenized = tokenized[None, :]  # Add batch dimension.
-# tokenized_translation = trax.supervised.decoding.autoregressive_sample(
-#     model, tokenized, temperature=0.0)  # Higher temperature: more diverse results.
-
-# # De-tokenize,
-# tokenized_translation = tokenized_translation[0][:-1]  # Remove batch and EOS.
-# translation = trax.data.detokenize(tokenized_translation,
-#                                    vocab_dir='gs://trax-ml/vocabs/',
-#                                    vocab_file='ende_32k.subword')
-# print(translation)
+    # New prediction
+    new_model.predict(is_test_set=True)
