@@ -9,8 +9,8 @@ if __name__ == '__main__':
     parser.add_argument("--train", action="store_true")
     parser.add_argument("--decompile", default=".")
 
-    parser.add_argument("--asm-path", default="./deepiler/data/asm_src")
-    parser.add_argument("--c-path", default="./deepiler/data/c_src")
+    parser.add_argument("--asm-path", default="./data/asm_src")
+    parser.add_argument("--c-path", default="./data/c_src")
     parser.add_argument("--train-eval-ratio", default=.9, type=float)
     parser.add_argument("--nb-files", default=10_000, type=int)
     parser.add_argument("--batch-size", default=32, type=int)
