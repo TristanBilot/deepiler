@@ -3,7 +3,7 @@ from typing import Generator
 
 import tensorflow as tf
 
-from ast_builder import extract_ast
+from deepiler.ast_builder import extract_ast
 
 
 class Tokenizer(object):

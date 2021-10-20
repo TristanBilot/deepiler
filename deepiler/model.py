@@ -8,8 +8,8 @@ from tqdm import tqdm
 from nltk.translate.bleu_score import sentence_bleu
 from tensorflow.python.data.ops.dataset_ops import BatchDataset
 
-from ast_builder import extract_ast
-from preprocessing import Tokenizer
+from deepiler.ast_builder import extract_ast
+from deepiler.preprocessing import Tokenizer
 
 
 class MultiHeadAttention(tf.keras.Model):
@@ -293,6 +293,8 @@ class DeepilerModel(object):
             print(prediction)
             print('---------- BLEU score ----------')
             print(self.bleu_score)
+
+        return prediction
 
     def save(
         self,
