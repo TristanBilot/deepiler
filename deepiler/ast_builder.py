@@ -573,6 +573,6 @@ def extract_ast(path):
 
   ast_str = ""
   for edge in asm_edges:
-      ast_str += ' '.join(list(map(lambda x: asm_nodes[x], edge))) + '\n'
+      ast_str += ' '.join(list(map(lambda x: asm_nodes[x], edge))) + ' '
     
   return ast_str
