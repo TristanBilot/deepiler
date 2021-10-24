@@ -1,5 +1,5 @@
 from deepiler.model import DeepilerModel
-from deepiler.preprocessing import MipsTokenizer
+from deepiler.preprocessing import ASTTokenizer
 
 import argparse
 
@@ -11,6 +11,7 @@ if __name__ == '__main__':
 
     parser.add_argument("--asm-path", default="./data/asm_src")
     parser.add_argument("--c-path", default="./data/c_src")
+    parser.add_argument("--arch", default="mips")
     parser.add_argument("--train-eval-ratio", default=.9, type=float)
     parser.add_argument("--nb-files", default=10_000, type=int)
     parser.add_argument("--batch-size", default=32, type=int)
@@ -26,7 +27,7 @@ if __name__ == '__main__':
     if not args.train and args.decompile == ".":
         raise argparse.ArgumentError("Use --decompile with the path to the file to decompile.")
 
-    tokenizer = MipsTokenizer()
+    tokenizer = ASTTokenizer(args.arch)
     train_dataset = tokenizer.load_dataset(args.asm_path, args.c_path, is_train=True, \
         nb_files=args.nb_files, train_eval_ratio=args.train_eval_ratio)
     dataset = tokenizer.preprocess_dataset(train_dataset)
