@@ -3,7 +3,7 @@ from typing import Generator
 
 import tensorflow as tf
 
-from deepiler.ast_builder import extract_ast
+from deepiler.ast.ast_builder import extract_ast
 
 
 class Tokenizer(object):
@@ -61,7 +61,6 @@ class Tokenizer(object):
         self.data_c_out = self.c_tokenizer.texts_to_sequences(raw_data_c_out)
         self.data_c_out = tf.keras.preprocessing.sequence.pad_sequences(self.data_c_out,padding='post')
 
-        self.c_tokenizer.get_config()
         ds = tf.data.Dataset.from_tensor_slices((self.data_asm, self.data_c_in, self.data_c_out))
 
         self.max_length = max(len(self.data_asm[0]), len(self.data_c_in[0]))
@@ -91,9 +90,16 @@ class Tokenizer(object):
             os.system(disass_cmd)
 
 
-class MipsTokenizer(Tokenizer):
-    def __init__(self):
-        super(MipsTokenizer, self).__init__()
+class ASTTokenizer(Tokenizer):
+    def __init__(
+        self,
+        arch: str,
+    ):
+        """A tokenizer which builds an AST when fetching assembly data.
+        `arch` is the computer architecture ("mips" or "x86")
+        """
+        super(ASTTokenizer, self).__init__()
+        self.arch = arch
 
     def load_dataset(
         self,
@@ -116,7 +122,7 @@ class MipsTokenizer(Tokenizer):
                 x_path = os.path.join(x_dir, f'rd_{i}.s')
                 y_path = os.path.join(y_dir, f'rd_{i}.cc')
                 c_code = open(y_path).read()
-                ast_str = extract_ast(x_path)
+                ast_str = extract_ast(x_path, self.arch)
 
                 yield ast_str, c_code
 

@@ -1,5 +1,5 @@
 from deepiler.model import DeepilerModel
-from deepiler.preprocessing import MipsTokenizer, RawCodeTokenizer
+from deepiler.preprocessing import ASTTokenizer, RawCodeTokenizer
 
 if __name__ == '__main__':
 
@@ -7,7 +7,7 @@ if __name__ == '__main__':
     c_path = "./data/c_src"
     asm_path = "./data/asm_src"
 
-    tokenizer = MipsTokenizer()
+    tokenizer = ASTTokenizer("x86")
     train_eval_ratio = .9
     nb_files = 10_000
     train_dataset = tokenizer.load_dataset(asm_path, c_path, is_train=True, \

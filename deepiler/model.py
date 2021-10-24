@@ -8,7 +8,7 @@ from tqdm import tqdm
 from nltk.translate.bleu_score import sentence_bleu
 from tensorflow.python.data.ops.dataset_ops import BatchDataset
 
-from deepiler.ast_builder import extract_ast
+from deepiler.ast.ast_builder import extract_ast
 from deepiler.preprocessing import Tokenizer
 
 
@@ -237,6 +237,7 @@ class DeepilerModel(object):
     def predict(
         self,
         asm_file=None,
+        c_file=None,
         is_test_set: bool=True,
         use_ast: bool=True,
         verbose: bool=True,
@@ -259,11 +260,12 @@ class DeepilerModel(object):
                 rd = randrange(0, ratio)
             c = open(os.path.join(self.c_path, f'rd_{rd}.cc'), 'r').read()
             if use_ast:
-                asm_ast = extract_ast(os.path.join(self.asm_path, f'rd_{rd}.s'))
+                asm_ast = extract_ast(os.path.join(self.asm_path, f'rd_{rd}.s'), self.tokenizer.arch)
                 asm_code = asm_ast
             else:
                 asm_code = open(os.path.join(self.asm_path, f'rd_{rd}.s'), 'r').read()
         else:
+            c = open(c_file, 'r').read()
             asm_code = open(asm_file, 'r').read()
         
         test_source_code = self.tokenizer.asm_tokenizer.texts_to_sequences([asm_code])
